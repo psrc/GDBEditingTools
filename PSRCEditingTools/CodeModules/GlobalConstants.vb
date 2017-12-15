@@ -62,6 +62,9 @@ Module GlobalConstants
     Public Const g_fldMpt = "M"
     Public Const g_fldLineEvent = "Line"
 
+    'Relationsip classes:
+    Public Const g_edgeToAttribute = "EdgesToAttribs"
+    Public Const g_projRouteToAttribute = "RoutesToOutcomes"
     'Transit edits
     Public g_TrLineID As String 'it gets value from the transit line dropdown list
     Public g_TrLineIDNew As String

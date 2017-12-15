@@ -4,7 +4,6 @@ Imports ESRI.ArcGIS.ADF.BaseClasses
 Imports ESRI.ArcGIS.ADF.CATIDs
 Imports ESRI.ArcGIS.Framework
 Imports ESRI.ArcGIS.ArcMapUI
-
 Imports ESRI.ArcGIS.Editor
 Imports ESRI.ArcGIS.SystemUI
 Imports ESRI.ArcGIS.esriSystem
@@ -107,28 +106,39 @@ Public NotInheritable Class cmdSplitTool
 
     Public Overrides Sub OnCreate(ByVal hook As Object)
         If Not hook Is Nothing Then
+
             m_application = CType(hook, IApplication)
 
             'Disable if it is not ArcMap
             If TypeOf hook Is IMxApplication Then
+
                 MyBase.m_enabled = True
+
             Else
+
                 MyBase.m_enabled = False
             End If
+
         End If
 
         m_SplitHappened = False
+
         ' TODO:  Add other initialization code
         Dim uid2 As New UID
+
+        Dim uidCmd As New UIDClass
+
+        Dim cmd As ICommandItem
+
         uid2.Value = "esriEditor.Editor"
+
         m_editor = CType(m_application.FindExtensionByCLSID(uid2), IEditor)
 
         'get access to  cmdStartEditing 
-        Dim uidCmd As New UIDClass
-        Dim cmd As ICommandItem
-
         uidCmd.Value = "{001386c4-ce20-4882-bd6c-9826b25015ff}"
+
         cmd = m_application.Document.CommandBars.Find(uidCmd, False, False)
+
         m_cmdStartEditing = cmd.Command
 
 
@@ -137,102 +147,90 @@ Public NotInheritable Class cmdSplitTool
 
         Get
 
-            'If m_editor.EditState = esriEditState.esriStateEditing Then
             If m_cmdStartEditing.m_HasClicked = True Then
+
                 Return True
 
-                'ElseIf m_editor.EditState = esriEditState.esriStateNotEditing Then
             ElseIf m_cmdStartEditing.m_HasClicked = False Then
+
                 Return False
 
             End If
 
-
-
         End Get
     End Property
+
     Public Overrides Sub OnClick()
-        'TODO: Add cmdSplitTool.OnClick implementation
+
+        Dim pRow As IRow
+
+        Dim pFeatureWorkspace As IFeatureWorkspace
+
         g_Schema = checkWS(m_editor, m_application)
 
-
-
-        'm_ModeAttributes = getStandaloneTable(g_Schema & g_ModeAttributes, m_application)
         m_RefEdges = GetFeatureLayer(GlobalConstants.g_Schema & g_RefEdge, m_application)
+
         m_Junctions = GetFeatureLayer(g_Schema & g_RefJunct, m_application)
+
         m_Projects = GetFeatureLayer(g_Schema & g_ProjectRoutes, m_application)
 
         m_SplitEdge = GetEditSelection()
-        'm_edgeColl.Add(m_SplitEdge)
 
-        'm_editor.StartOperation()
+        pFeatureWorkspace = m_cmdStartEditing.pWrkspc
 
-        Dim pfilter As IQueryFilter
-        Dim pCursor As ICursor
-        Dim m_ModeAttributes As IStandaloneTable
-        Dim m_tblProjecAttributes As IStandaloneTable
-        Dim pRow As IRow
-        Dim pEdgeAttributes As EdgeAttributes
-        Dim pProjectAttributes As ProjectAttributes
+        If m_SplitEdge.Class.AliasName = g_Schema & g_RefEdge Then
 
-        If m_SplitEdge.Class.AliasName.Contains("TransRefEdges") Then
-            pEdgeAttributes = New EdgeAttributes(m_SplitEdge)
-            pfilter = New QueryFilter
-            pfilter.WhereClause = "PSRCEDGEID = " & pEdgeAttributes.PSRCEdgeID
-            m_ModeAttributes = getStandaloneTable(g_Schema & g_ModeAttributes, m_application)
-            pCursor = m_ModeAttributes.Table.Search(pfilter, True)
-            pRow = pCursor.NextRow
+            pRow = GetRelatedRecord(g_Schema & g_edgeToAttribute, pFeatureWorkspace, m_SplitEdge)
+
             m_EdgeModeAttributes = New ModeAttributes(pRow)
 
-        ElseIf m_SplitEdge.Class.AliasName.Contains("ProjectRoutes") Then
-            pProjectAttributes = New ProjectAttributes(m_SplitEdge)
-            pfilter = New QueryFilter
-            pfilter.WhereClause = "PROJRTEID = " & pProjectAttributes.PROJRTEID
-            m_tblProjecAttributes = getStandaloneTable(g_Schema & g_ProjectAttributes, m_application)
-            pCursor = m_tblProjecAttributes.Table.Search(pfilter, True)
-            pRow = pCursor.NextRow
+        ElseIf m_SplitEdge.Class.AliasName = g_Schema & g_ProjectRoutes Then
+
+            pRow = GetRelatedRecord(g_Schema & g_projRouteToAttribute, pFeatureWorkspace, m_SplitEdge)
+
             m_ProjecAttributes = New TblLineProjects(pRow)
+
         End If
-        
-
-
-
 
         Dim uidCmd As New UIDClass
+
         Dim cmd As ICommandItem
 
         uidCmd.Value = "{5609B740-112F-11D2-84A9-0000F875B9C6}"
+
         cmd = m_application.Document.CommandBars.Find(uidCmd, False, False)
+
         m_application.CurrentTool = cmd
 
-
     End Sub
+
     Public Function GetEditSelection() As IFeature
-        'Dim pApp As IApplication
-        'Dim pEditor As IEditor
+
         Dim pEnumFeat As IEnumFeature
+
         Dim pFeature As IFeature
+
         Dim Count As Integer
-        'Dim pID As New UID
-        'Get a handle to the Editor extension
-        'pID = "esriEditor.Editor"
-        'pApp = m_application
-        'pEditor = pApp.FindExtensionByCLSID(pID)
+
         'Get the selection
         pEnumFeat = m_editor.EditSelection
+
         pEnumFeat.Reset()
+
         'Loop through the selection and perform some action
         If m_editor.SelectionCount > 1 Then
+
             MessageBox.Show("Only 1 Edge can be selected to use the Split Tool!", "More than 1 Edge Selected", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
 
-            Exit Function
+
         ElseIf m_editor.SelectionCount = 0 Then
+
             MessageBox.Show("An edge must be selected to use the Split Tool!", "No Edge Selected", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
 
         Else
 
             pFeature = pEnumFeat.Next
-            'In this example return the GeometryType
+
             GetEditSelection = pFeature
 
 

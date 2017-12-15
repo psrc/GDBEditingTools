@@ -2005,6 +2005,16 @@ eh:
 
     End Function
 
+    Public Function GetRelatedRecord(ByVal pRelName As String, ByVal pFeatureWorkspace As IFeatureWorkspace, pFeature As IFeature)
+        Dim pRelationshipClass As IRelationshipClass
+        Dim pSet As ISet
+        Dim pRow As IRow
+        pRelationshipClass = pFeatureWorkspace.OpenRelationshipClass(pRelName)
+        pSet = pRelationshipClass.GetObjectsRelatedToObject(pFeature)
+        pRow = pSet.Next
+        Return pRow
+    End Function
+
     Public Sub CheckIJNode2(ByVal pMap As IMap)
         Dim pEnumFeat As IEnumFeature
         Dim pSelection As ISelection

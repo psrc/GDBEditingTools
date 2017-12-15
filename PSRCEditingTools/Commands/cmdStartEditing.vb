@@ -218,7 +218,6 @@ Public NotInheritable Class cmdStartEditing
 
 
         SetUpEvents()
-        'StartSDEWorkspaceEditorOperation(pWrkspc, m_application)
 
         'some boolean variables to keep track of state
         'this is used to make sure the sketch tool is not used to trace a line
@@ -276,7 +275,7 @@ Public NotInheritable Class cmdStartEditing
             If TypeOf m_map.Layer(a) Is IFeatureLayer Then
                 pFlayer = CType(m_map.Layer(a), IFeatureLayer2)
                 If pFlayer.DataSourceType = "SDE Feature Class" Then
-                    If m_map.Layer(a).Name.Contains("ProjectRoutes") Then 'make sure it is teh Project layer*****delete later?" Then
+                    If m_map.Layer(a).Name.Contains(g_ProjectRoutes) Then 'make sure it is teh Project layer*****delete later?" Then
                         pFWorkspaceLayer = pFlayer
                         Exit For
                     End If
@@ -394,11 +393,7 @@ Public NotInheritable Class cmdStartEditing
 
         End If
 
-        'Catch ex As Exception
-
-        'MessageBox.Show(ex.ToString & vbCrLf & vbCrLf & "Please contact Stefan Coe if problem persists.", "Data Catalog", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
-
-        'End Try
+        
 
 
 
@@ -409,23 +404,7 @@ Public NotInheritable Class cmdStartEditing
 
         Dim pID As New UID
 
-        Dim a As Integer
-
-        Dim flayer As IFeatureLayer
-
-        Dim pFeature As IFeature
-
-        Dim pCmdItm As ICommandItem
-
         Dim topoUiD As New UID
-
-        Dim topologyExt As ESRI.ArcGIS.EditorExt.ITopologyExtension
-
-        Dim geoDS As IGeoDataset
-
-        Dim pRefEdge As RefEdgeAttributes
-
-        Dim pObjRefEdge As RefEdgeAttributes
 
         Dim uidCmd As New UIDClass
 
@@ -440,10 +419,6 @@ Public NotInheritable Class cmdStartEditing
         Dim pRow As IRow
 
         Dim pEnvelope As IEnvelope = New Envelope
-
-        Dim pEnvelopeFeature As IFeature
-
-        Dim pItem As Object
 
         Dim pRelationshipClass As IRelationshipClass
 
@@ -463,95 +438,26 @@ Public NotInheritable Class cmdStartEditing
 
         m_cmdSplitTool = CType(cmd.Command, cmdSplitTool)
 
-        Dim p_BikeAttAdded As Boolean
-
         'get the Split Edge Tool so we know what kind of edits the user is going to make
         If Not m_cmdSplitTool.m_SplitEdge Is Nothing Then
 
-            'If obj.Class.AliasName = m_cmdSplitTool.m_SplitEdge.Class.AliasName Then
-
-            'see if the edgeid is in tblBikeAttributes. If so, add the new edge as well. 
-            '    If pRelationshipClass.GetObjectsRelatedToObject(m_cmdSplitTool.m_SplitEdge).Count > 0 Then
-
-            '        Dim pSet As ISet
-
-            '        Dim pBikeRow As IRow
-
-            '        pSet = pRelationshipClass.GetObjectsRelatedToObject(m_cmdSplitTool.m_SplitEdge)
-
-            '        pBikeRow = pSet.Next
-
-            '        Dim NewEdgeAttributes As New RefEdgeAttributes(pFeature)
-
-            '        Dim pFilter2 As IQueryFilter
-
-            '        pFilter2 = New QueryFilter
-            '        pFilter2.WhereClause = "PSRCEdgeID = " & NewEdgeAttributes.EdgeID
-
-            '        'check to see if already added, event fires twice
-            '        If pDestinationTable.RowCount(pFilter2) > 0 Then
-
-            '            Exit Sub
-
-            '        End If
-
-            '        Dim rowBuffer As IRowBuffer = pDestinationTable.CreateRowBuffer
-
-            '        Dim insertCursor As ICursor = pDestinationTable.Insert(True)
-
-            '        Dim i As Integer
-
-            '        Try
-
-            '            rowBuffer.Value(1) = NewEdgeAttributes.EdgeID
-
-            '            For i = 2 To pBikeRow.Fields.FieldCount - 1
-
-            '                rowBuffer.Value(i) = pBikeRow.Value(i)
-
-            '            Next i
-
-            '            insertCursor.InsertRow(rowBuffer)
-
-            '            insertCursor.Flush()
-
-            '            Marshal.ReleaseComObject(insertCursor)
-
-            '        Catch ex As Exception
-
-            '            MessageBox.Show(ex.ToString)
-
-            '        End Try
-
-            '    End If
-
-            'End If
-
-
-            If obj.Class.AliasName.Contains("modeAttributes") Then
-
+            If obj.Class.AliasName = g_Schema & g_ModeAttributes Then
 
                 pRow = CType(obj, IRow)
 
                 m_modeAttributes = New ModeAttributes(pRow)
+
                 GetSplitFeatureAttributes(pRow, m_modeAttributes, m_cmdSplitTool.m_EdgeModeAttributes)
 
                 m_cmdSplitTool.m_SplitEdge = Nothing
 
                 m_cmdSplitTool.m_edgeColl.Clear()
 
-                pID.Value = "{44276914-98C1-11D1-8464-0000F875B9C6}:0"
-
-                pCmdItm = m_application.Document.CommandBars.Find(pID)
-
-                pCmdItm.Execute()
-
                 Exit Sub
 
             End If
 
-            If obj.Class.AliasName.Contains("tblLineProjects") Then
-
+            If obj.Class.AliasName = g_Schema & g_ProjectAttributes Then
 
                 pRow = CType(obj, IRow)
 
@@ -562,10 +468,6 @@ Public NotInheritable Class cmdStartEditing
                 m_cmdSplitTool.m_SplitEdge = Nothing
 
                 m_cmdSplitTool.m_edgeColl.Clear()
-
-                pCmdItm = m_application.Document.CommandBars.Find(pID)
-                pCmdItm.Execute()
-
 
                 Exit Sub
 
@@ -629,10 +531,6 @@ Public NotInheritable Class cmdStartEditing
 
 
 
-
-
-
-
                 ' Dim dblSnappingTolerance As Double
 
                 'dblSnappingTolerance = m_mxDoc.FocusMap.MapScale / 100
@@ -647,22 +545,12 @@ Public NotInheritable Class cmdStartEditing
     End Sub
 
     Private Sub OnSketchFinished()
-        'MessageBox.Show("fired")
-
-        ' pSnap = CType(m_editor, ISnapEnvironment)
-
-        ' m_editSketch2 = CType(m_editor, IEditSketch2)
-        'MessageBox.Show(m_editSketch2.LastPoint.ID)
 
     End Sub
+
     Private Sub OnStopEditing(ByVal save As Boolean)
 
-
-
-
-
     End Sub
-
 
     Public Sub GetSplitFeatureAttributes(ByVal tableRow As IRow, ByVal toObject As Object, ByVal fromObject As Object)
 
@@ -686,7 +574,9 @@ Public NotInheritable Class cmdStartEditing
     End Sub
 
     Protected Overrides Sub Finalize()
+
         MyBase.Finalize()
+
     End Sub
 
 
