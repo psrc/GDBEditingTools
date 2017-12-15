@@ -11,6 +11,7 @@ Module GlobalConstants
     Public Const g_TransitLines = "TransitLines"
     Public Const g_TransitPoints = "TransitPoints"
     Public Const g_ModeAttributes = "modeAttributes"
+    Public Const g_ProjectAttributes = "tblLineProjects"
     Public Const g_ModeTolls = "ModeTolls"
     Public Const g_EdgeFac = "tblEdgeFacility"
     Public Const g_TurnMovements = "TurnMovements"

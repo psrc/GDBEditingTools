@@ -435,6 +435,8 @@ Public NotInheritable Class cmdStartEditing
 
         Dim m_modeAttributes As ModeAttributes
 
+        Dim m_tblLineProjects As TblLineProjects
+
         Dim pRow As IRow
 
         Dim pEnvelope As IEnvelope = New Envelope
@@ -466,104 +468,73 @@ Public NotInheritable Class cmdStartEditing
         'get the Split Edge Tool so we know what kind of edits the user is going to make
         If Not m_cmdSplitTool.m_SplitEdge Is Nothing Then
 
-            If obj.Class.AliasName = m_cmdSplitTool.m_SplitEdge.Class.AliasName Then
+            'If obj.Class.AliasName = m_cmdSplitTool.m_SplitEdge.Class.AliasName Then
 
-                'm_cmdSplitTool.m_edgeColl.Add(m_cmdSplitTool.m_SplitEdge)
+            'see if the edgeid is in tblBikeAttributes. If so, add the new edge as well. 
+            '    If pRelationshipClass.GetObjectsRelatedToObject(m_cmdSplitTool.m_SplitEdge).Count > 0 Then
 
-                'pFeature = CType(obj, IFeature)
+            '        Dim pSet As ISet
 
-                'm_cmdSplitTool.m_edgeColl.Add(pFeature)
+            '        Dim pBikeRow As IRow
 
-                'For x = 1 To m_cmdSplitTool.m_edgeColl.Count
+            '        pSet = pRelationshipClass.GetObjectsRelatedToObject(m_cmdSplitTool.m_SplitEdge)
 
-                '    pEnvelopeFeature = CType(m_cmdSplitTool.m_edgeColl.Item(x), IFeature)
+            '        pBikeRow = pSet.Next
 
-                '    pEnvelope.Union(pFeature.Extent)
+            '        Dim NewEdgeAttributes As New RefEdgeAttributes(pFeature)
 
-                'Next
+            '        Dim pFilter2 As IQueryFilter
 
-                'm_AreaToValidate = pEnvelope
+            '        pFilter2 = New QueryFilter
+            '        pFilter2.WhereClause = "PSRCEdgeID = " & NewEdgeAttributes.EdgeID
 
-                'see if the edgeid is in tblBikeAttributes. If so, add the new edge as well. 
-                If pRelationshipClass.GetObjectsRelatedToObject(m_cmdSplitTool.m_SplitEdge).Count > 0 Then
+            '        'check to see if already added, event fires twice
+            '        If pDestinationTable.RowCount(pFilter2) > 0 Then
 
-                    Dim pSet As ISet
+            '            Exit Sub
 
-                    Dim pBikeRow As IRow
+            '        End If
 
-                    pSet = pRelationshipClass.GetObjectsRelatedToObject(m_cmdSplitTool.m_SplitEdge)
+            '        Dim rowBuffer As IRowBuffer = pDestinationTable.CreateRowBuffer
 
-                    pBikeRow = pSet.Next
+            '        Dim insertCursor As ICursor = pDestinationTable.Insert(True)
 
-                    Dim NewEdgeAttributes As New RefEdgeAttributes(pFeature)
+            '        Dim i As Integer
 
-                    Dim pFilter2 As IQueryFilter
+            '        Try
 
-                    pFilter2 = New QueryFilter
-                    pFilter2.WhereClause = "PSRCEdgeID = " & NewEdgeAttributes.EdgeID
+            '            rowBuffer.Value(1) = NewEdgeAttributes.EdgeID
 
-                    'check to see if already added, event fires twice
-                    If pDestinationTable.RowCount(pFilter2) > 0 Then
+            '            For i = 2 To pBikeRow.Fields.FieldCount - 1
 
-                        Exit Sub
+            '                rowBuffer.Value(i) = pBikeRow.Value(i)
 
-                    End If
+            '            Next i
 
-                    Dim rowBuffer As IRowBuffer = pDestinationTable.CreateRowBuffer
+            '            insertCursor.InsertRow(rowBuffer)
 
-                    Dim insertCursor As ICursor = pDestinationTable.Insert(True)
+            '            insertCursor.Flush()
 
-                    Dim i As Integer
+            '            Marshal.ReleaseComObject(insertCursor)
 
-                    Try
+            '        Catch ex As Exception
 
-                        rowBuffer.Value(1) = NewEdgeAttributes.EdgeID
+            '            MessageBox.Show(ex.ToString)
 
-                        For i = 2 To pBikeRow.Fields.FieldCount - 1
+            '        End Try
 
-                            rowBuffer.Value(i) = pBikeRow.Value(i)
+            '    End If
 
-                        Next i
-
-                        insertCursor.InsertRow(rowBuffer)
-
-                        insertCursor.Flush()
-
-                        Marshal.ReleaseComObject(insertCursor)
-
-                    Catch ex As Exception
-
-                        MessageBox.Show(ex.ToString)
-
-                    End Try
-
-                End If
-
-            End If
+            'End If
 
 
             If obj.Class.AliasName.Contains("modeAttributes") Then
 
+
                 pRow = CType(obj, IRow)
 
                 m_modeAttributes = New ModeAttributes(pRow)
-
-                Dim _type As Type = m_modeAttributes.GetType()
-
-                Dim properties() As Reflection.PropertyInfo = _type.GetProperties()
-
-                For Each _property As Reflection.PropertyInfo In properties
-
-                    If _property.Name <> "OID" And _property.Name <> "PSRCEDGEID" Then
-
-                        If pRow.Fields.FindField(_property.Name) <> -1 Then
-
-                            _property.SetValue(m_modeAttributes, _property.GetValue(m_cmdSplitTool.m_EdgeModeAttributes))
-
-                        End If
-                    End If
-
-                Next
+                GetSplitFeatureAttributes(pRow, m_modeAttributes, m_cmdSplitTool.m_EdgeModeAttributes)
 
                 m_cmdSplitTool.m_SplitEdge = Nothing
 
@@ -579,215 +550,29 @@ Public NotInheritable Class cmdStartEditing
 
             End If
 
+            If obj.Class.AliasName.Contains("tblLineProjects") Then
+
+
+                pRow = CType(obj, IRow)
+
+                m_tblLineProjects = New TblLineProjects(pRow)
+
+                GetSplitFeatureAttributes(pRow, m_tblLineProjects, m_cmdSplitTool.m_ProjecAttributes)
+
+                m_cmdSplitTool.m_SplitEdge = Nothing
+
+                m_cmdSplitTool.m_edgeColl.Clear()
+
+                pCmdItm = m_application.Document.CommandBars.Find(pID)
+                pCmdItm.Execute()
+
+
+                Exit Sub
+
+            End If
+
         End If
 
-        'Try
-
-        '    If TypeOf obj Is IFeature Then
-        '        boolOutsideError = False
-        '        'pFeature = CType(obj, IFeature)
-
-        '        'is on create being called from a sketch (user) or an automatic fix
-
-        '        If m_boolSketchEdit = True Then 'user just finished an edit sketch
-
-        '            If m_TLComboBoxControl.ComboBox1.SelectedItem = "Add Projects" Then
-
-        '                'find the layer that corresponds to the feature just added. Need to know if it is a project or not
-        '                For a = 0 To m_map.LayerCount - 1
-
-        '                    If TypeOf m_map.Layer(a) Is IFeatureLayer Then
-
-        '                        flayer = CType(m_map.Layer(a), IFeatureLayer)
-
-        '                        If flayer.FeatureClass Is obj.Table Then 'the object (sketch feature) is from this layer's FC
-
-        '                            If flayer.Name = "sde.SDE.ProjectRoutes" Then 'make sure it is teh Project layer*****delete later?
-
-        '                                pFeature = CType(obj, IFeature)
-        '                                projFeature = pFeature
-        '                                Dim pProject As New ProjectAttributes(pFeature)
-        '                                pProject.ProjectINode = GetFeatureINode(pFeature, m_Junctions)
-        '                                pProject.ProjectJNode = GetFeatureJNode(pFeature, m_Junctions)
-
-
-
-
-
-        '                                m_AreaToValidate = pFeature.Extent 'the area to validate is the extent of the sketch feature
-
-        '                                Exit For
-
-        '                            End If
-
-        '                        End If
-        '                    End If
-        '                Next
-
-        '            End If
-
-
-        '            If m_TLComboBoxControl.ComboBox1.SelectedItem = "Add Junctions" Then
-
-        '                pFeature = CType(obj, IFeature)
-
-        '                m_AreaToValidate = pFeature.Extent
-
-        '                'Dim mJunctionAttributes As New JunctionAttributes(pFeature)
-
-        '                'Dim NewJunctionID As Long
-
-        '                'GetLargestID(m_pRefJunctionsTable, "PSRCJunctID", NewJunctionID)
-
-        '                'mJunctionAttributes.PSRCJunctID = NewJunctionID + 1
-
-        '                'pFeature.Store()
-
-        '                ' m_pEnvelope = pFeature.Extent
-
-        '                'pFeature = Nothing
-
-        '            End If
-
-
-
-        '            If m_TLComboBoxControl.ComboBox1.SelectedItem = "Add TransRefEdges" Then
-        '                pFeature = CType(obj, IFeature)
-
-        '                m_AreaToValidate = pFeature.Extent
-
-        '                Dim mTransRefEdgeAttributes As New EdgeAttributes(pFeature)
-
-        '                'Dim NewEdgeID As Long
-
-        '                'GetLargestID(m_pRefEdgesTable, "PSRCEdgeID", NewEdgeID)
-
-        '                'mTransRefEdgeAttributes.PSRCEdgeID = NewEdgeID + 1
-
-        '                pFeature.Store()
-
-        '            End If
-        '        End If
-
-        '        If Not m_AreaToValidate Is Nothing Then
-        '            m_AreaToValidate = ExpandEnvelope(10, 10, m_AreaToValidate)
-
-        '        End If
-
-
-        '        'must see if project has been assigned i and j node attributers yet
-        '        'if not, assign them
-        '        'If Not projFeature Is Nothing Then
-        '        'StopWorkspaceEditOperation(m_application, pWrkspc)
-        '        'StartSDEWorkspaceEditorOperation(pWrkspc, m_application)
-        '        'Dim pProject2 As New ProjectAttributes(projFeature)
-        '        'If pProject2.HasINode = False Then
-        '        'GetProjectINode(projFeature, m_Junctions)
-        '        'End If
-        '        'If pProject2.HasJNode = False Then
-        '        'GetProjectJNode(projFeature, m_Junctions)
-        '        'End If
-        '        'pProject2 = Nothing
-        '        'StopWorkspaceEditOperation(m_application, pWrkspc)
-        '        'End If
-        '        ' For a = 0 To m_map.LayerCount - 1
-        '        'If TypeOf m_map.Layer(a) Is IFeatureLayer Then
-        '        'flayer = CType(m_map.Layer(a), IFeatureLayer)
-        '        'If flayer.FeatureClass Is obj.Table Then 'the object (sketch feature) is from this layer's FC
-
-        '        'If flayer.Name = "sde.PSRC.TransRefEdges" Then 'make sure it is teh Project layer*****delete later?
-
-        '        'edgeFeature = CType(obj, IFeature)
-
-        '        'Exit For
-
-        '        ' End If
-
-        '        'End If
-        '        'End If
-
-        '        ' Next
-
-
-
-
-
-        '        'get the topology 
-
-        '        topoUiD.Value = "esriEditorExt.TopologyExtension"
-
-        '        topologyExt = CType(m_application.FindExtensionByCLSID(topoUiD), ESRI.ArcGIS.EditorExt.ITopologyExtension)
-
-        '        m_topology = CType(topologyExt.CurrentTopology, ITopology)
-        '        geoDS = m_topology
-
-
-        '        'env = GetDirtyAreas(m_topology)
-        '        Dim x As Double = 2
-        '        Dim y As Double = 2
-        '        'If Not m_AreaToValidate Is Nothing Then
-        '        'ture = CType(obj, IFeature)
-        '        'If m_AreaToValidate.Width < pFeature.Shape.Envelope.Width Then
-        '        'm_AreaToValidate.Width = pFeature.Shape.Envelope.Width
-        '        'End If
-        '        'If m_AreaToValidate.Height < pFeature.Shape.Envelope.Height Then
-        '        'm_AreaToValidate.Height = pFeature.Shape.Envelope.Height
-        '        'End If
-        '        'End If
-
-        '        'ValidateTopology(m_topology, m_AreaToValidate)
-        '        m_activeView.Refresh()
-
-        '        'prompt user if errors:
-
-
-        '        '***********************************
-        '        'errorContainer = m_topology
-        '        'eErrorFeat = errorContainer.ErrorFeaturesByRuleType(geoDS.SpatialReference, esriTopologyRuleType.esriTRTAny, env, True, False)
-        '        'TopoError = eErrorFeat.Next
-
-
-        '        'If Not TopoError Is Nothing Then
-        '        ' MessageBox.Show("There are topological Errors. Pleas use the Fix Topology Tool.")
-        '        ' Else
-        '        'MessageBox.Show("There are no topology errors at this time.")
-
-        '        'End If
-        '        'select the added feature
-        '        '*************************************************
-        '        'SelectFeature(m_map, obj, m_mxDoc, m_activeView)
-
-        '        'end sketch edit if
-        '        ' End If
-
-
-        '        'clean up
-
-
-
-        '        ' Show the attribute dialog
-
-        '        If m_boolSketchEdit = True Then
-
-        '            SelectFeature(m_map, obj, m_mxDoc, m_activeView)
-        '            pID.Value = "{44276914-98C1-11D1-8464-0000F875B9C6}:0"
-
-        '            pCmdItm = m_application.Document.CommandBars.Find(pID)
-
-        '            pCmdItm.Execute()
-
-        '        End If
-        '        m_boolSketchEdit = True
-
-        '        obj = Nothing
-        '    End If
-
-
-        'Catch ex As Exception
-
-        '    MessageBox.Show(ex.ToString & vbCrLf & vbCrLf & "Please contact Stefan Coe if problem persists.", "Data Catalog", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
-
-        'End Try
 
     End Sub
     Public Sub SetUpEvents()
@@ -879,8 +664,26 @@ Public NotInheritable Class cmdStartEditing
     End Sub
 
 
+    Public Sub GetSplitFeatureAttributes(ByVal tableRow As IRow, ByVal toObject As Object, ByVal fromObject As Object)
 
+        Dim _type As Type = toObject.GetType()
 
+        Dim properties() As Reflection.PropertyInfo = _type.GetProperties()
+
+        For Each _property As Reflection.PropertyInfo In properties
+
+            If _property.Name <> "OID" And _property.Name <> "PSRCEDGEID" And _property.Name <> "projRteID" And _property.Name <> "CompletionDate" And _property.Name <> "EditNotes" And _property.Name <> "Processing" Then
+
+                If tableRow.Fields.FindField(_property.Name) <> -1 Then
+
+                    _property.SetValue(toObject, _property.GetValue(fromObject))
+
+                End If
+            End If
+
+        Next
+
+    End Sub
 
     Protected Overrides Sub Finalize()
         MyBase.Finalize()

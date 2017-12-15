@@ -7,14 +7,19 @@ Public Class ProjectAttributes
 
 
     End Sub
-    Public ReadOnly Property PROJRTEID() As Long
+    Public Property PROJRTEID() As Long
 
         Get
             Dim intPos As Integer
             intPos = projectFeature.Fields.FindField("PROJRTEID")
             PROJRTEID = projectFeature.Value(intPos)
         End Get
-
+        Set(ByVal value As Long)
+            Dim intPos As Integer
+            intPos = projectFeature.Fields.FindField("PROJRTEID")
+            projectFeature.Value(intPos) = value
+            projectFeature.Store()
+        End Set
     End Property
     Public Property ProjectINode() As Long
 

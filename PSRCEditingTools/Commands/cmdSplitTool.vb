@@ -75,7 +75,7 @@ Public NotInheritable Class cmdSplitTool
     Public m_SplitHappened As Boolean
     Public m_edgeColl As New Collection
     Public m_EdgeModeAttributes As ModeAttributes
-
+    Public m_ProjecAttributes As TblLineProjects
 
 
 
@@ -170,16 +170,30 @@ Public NotInheritable Class cmdSplitTool
         Dim pfilter As IQueryFilter
         Dim pCursor As ICursor
         Dim m_ModeAttributes As IStandaloneTable
+        Dim m_tblProjecAttributes As IStandaloneTable
         Dim pRow As IRow
         Dim pEdgeAttributes As EdgeAttributes
+        Dim pProjectAttributes As ProjectAttributes
 
-        pEdgeAttributes = New EdgeAttributes(m_SplitEdge)
-        pFilter = New QueryFilter
-        pfilter.WhereClause = "PSRCEDGEID = " & pEdgeattributes.PSRCEdgeID
-        m_ModeAttributes = getStandaloneTable(g_Schema & g_ModeAttributes, m_application)
-        pCursor = m_ModeAttributes.Table.Search(pFilter, True)
-        pRow = pCursor.NextRow
-        m_EdgeModeAttributes = New ModeAttributes(pRow)
+        If m_SplitEdge.Class.AliasName.Contains("TransRefEdges") Then
+            pEdgeAttributes = New EdgeAttributes(m_SplitEdge)
+            pfilter = New QueryFilter
+            pfilter.WhereClause = "PSRCEDGEID = " & pEdgeAttributes.PSRCEdgeID
+            m_ModeAttributes = getStandaloneTable(g_Schema & g_ModeAttributes, m_application)
+            pCursor = m_ModeAttributes.Table.Search(pfilter, True)
+            pRow = pCursor.NextRow
+            m_EdgeModeAttributes = New ModeAttributes(pRow)
+
+        ElseIf m_SplitEdge.Class.AliasName.Contains("ProjectRoutes") Then
+            pProjectAttributes = New ProjectAttributes(m_SplitEdge)
+            pfilter = New QueryFilter
+            pfilter.WhereClause = "PROJRTEID = " & pProjectAttributes.PROJRTEID
+            m_tblProjecAttributes = getStandaloneTable(g_Schema & g_ProjectAttributes, m_application)
+            pCursor = m_tblProjecAttributes.Table.Search(pfilter, True)
+            pRow = pCursor.NextRow
+            m_ProjecAttributes = New TblLineProjects(pRow)
+        End If
+        
 
 
 

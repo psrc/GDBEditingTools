@@ -182,6 +182,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\bikeAttributes.vb" />
+    <Compile Include="Classes\TblLineProjects.vb" />
     <Compile Include="Classes\CodedValue.vb" />
     <Compile Include="Classes\FieldPropertyDescriptor.vb" />
     <Compile Include="Classes\GetEndPoints.vb" />
@@ -252,6 +253,7 @@
     <Compile Include="Classes\ModeAttributes.vb" />
     <Compile Include="Classes\ProjectAttributes.vb" />
     <Compile Include="Classes\RefEdgeAttributes.vb" />
+    <Compile Include="Classes\RowByEdgeID.vb" />
     <Compile Include="SketchTool.vb" />
     <Compile Include="TestEvents.vb" />
     <Compile Include="Commands\TLComboBoxControl.designer.vb">
