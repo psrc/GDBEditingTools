@@ -57,9 +57,6 @@ Public Class frmDeleteFeatures
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
         m_mxDoc = m_application.Document
         Dim uid2 As New UID
-        Dim pTable As ITable
-        Dim pfilter As IQueryFilter
-
         uid2.Value = "esriEditor.Editor"
         m_editor = CType(m_application.FindExtensionByCLSID(uid2), IEditor)
         m_activeView = m_mxDoc.ActiveView
@@ -67,24 +64,45 @@ Public Class frmDeleteFeatures
         m_map = m_activeView.FocusMap
         g_Schema = checkWS(m_editor, m_application)
 
-        pfilter = New QueryFilter
-        pfilter.WhereClause = "POINTORDER >= 0"
+        
+        m_Projects = GetFeatureLayer(g_Schema & g_ProjectRoutes, m_application)
+        Dim featureClass As IFeatureClass
+        featureClass = m_Projects.FeatureClass
 
-        m_transitPoints = GetFeatureLayer(GlobalConstants.g_Schema & g_TransitPoints, m_application)
-        pDataset = CType(m_transitPoints.FeatureClass, IDataset)
+        If featureClass.EXTCLSID Is Nothing Then
+            Dim editSchema As IClassSchemaEdit
+            editSchema = featureClass
 
-        pWrkspc = pDataset.Workspace
+            Dim schemaLock As ISchemaLock
+            schemaLock = featureClass
 
-        pTable = m_transitPoints.FeatureClass
+            ' set an exclusive lock on the class
+            schemaLock.ChangeSchemaLock(esriSchemaLock.esriExclusiveSchemaLock)
 
-        'StopWorkspaceEditOperation(m_application, pWrkspc)
-        StartSDEWorkspaceEditorOperation(pWrkspc, m_application)
-        MessageBox.Show(pTable.RowCount(pfilter))
+            ' create the IUID object
+            Dim uid As New UID
+            uid.Value = "EadaGDBExt.TimeStamper"
 
+            ' Make the property set
+            Dim propSet As IPropertySet
+            propSet = New PropertySet
 
-        pTable.DeleteSearchedRows(pfilter)
-        StopWorkspaceEditOperation(m_application, pWrkspc)
-        MessageBox.Show("done")
+            propSet.SetProperty("CREATION_FIELDNAME", "DateCreated")
+            propSet.SetProperty("MODIFICATION_FIELDNAME", "dateLastUpdated")
+            propSet.SetProperty("USER_FIELDNAME", "LastEditor")
+
+            ' alter the class extension for the class
+            editSchema.AlterClassExtensionCLSID(uid, propSet)
+
+            ' release the exclusive lock
+            schemaLock.ChangeSchemaLock(esriSchemaLock.esriSharedSchemaLock)
+
+            MsgBox("Altered feature class' EXTCLSID field")
+
+        Else
+            MsgBox("Cannot alter EXTCLSID for feature class. One already exists")
+        End If
+
 
 
     End Sub

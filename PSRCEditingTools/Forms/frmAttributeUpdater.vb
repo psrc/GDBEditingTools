@@ -509,7 +509,7 @@ Public Class frmAttributeUpdater
 
 
         'Dim pWorkspace As IWorkspace
-        'pWorkspace = pFact.OpenFromFile("C:\Documents and Settings\stefan.PSRC\Application Data\ESRI\ArcCatalog\psrcsqlsde.sde", 0)
+
 
         Dim pFeatws As IFeatureWorkspace
         pFeatws = pWrkspc
@@ -740,7 +740,7 @@ Public Class frmAttributeUpdater
 
 
         'Dim pWorkspace As IWorkspace
-        'pWorkspace = pFact.OpenFromFile("C:\Documents and Settings\stefan.PSRC\Application Data\ESRI\ArcCatalog\psrcsqlsde.sde", 0)
+
 
         Dim pFeatws As IFeatureWorkspace
         pFeatws = pWrkspc

@@ -56,7 +56,8 @@ Public NotInheritable Class cmdSnapStops
 
     Private m_application As IApplication
 
-    Public m_frmSnapStops As New frmSnapStopsToEndPoints
+    Public m_frmSnapStops As New frmDeleteFeatures
+
     'Public m_frmWalkAccess As New frmWalkAccess
     'Public m_frmNodeCount As New frmNodeCount
 

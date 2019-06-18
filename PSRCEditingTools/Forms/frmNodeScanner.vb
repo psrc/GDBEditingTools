@@ -191,10 +191,10 @@ Public Class frmNodeScanner
                         If chkSwitchNodes.Checked Then
                             pEdge.INode = pINode
                             pEdge.JNode = pJNode
-                            If chkSwitchAttributes.Checked Then
-                                SwitchModeAttributes(m_ModeAttributes, pEdge.EdgeID)
-                                WriteLogLine("I & J Nodes + Attributes Switched for edge " & pEdge.EdgeID)
-                            End If
+                            'If chkSwitchAttributes.Checked Then
+                            '    SwitchModeAttributes(m_ModeAttributes, pEdge.EdgeID)
+                            'WriteLogLine("I & J Nodes + Attributes Switched for edge " & pEdge.EdgeID)
+                            'End If
 
                             'FileOpen(1, "c:\SumStats.txt", OpenMode.Append, OpenAccess.ReadWrite, OpenShare.Default)
                             WriteLogLine("I & J Nodes Switched for edge " & pEdge.EdgeID)
